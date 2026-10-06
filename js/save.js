@@ -161,15 +161,38 @@
     }, 1500);
   }
 
+  // How a file is offered to the player. A page hosted somewhere that blocks
+  // ordinary downloads can replace it: fn(filename, text) -> void | Promise.
+  let downloader = download;
+  let exportOk = true;
+  function setDownloader(fn) {
+    downloader = typeof fn === 'function' ? fn : download;
+  }
+  function setExportAvailable(ok) {
+    exportOk = !!ok;
+  }
+  function exportAvailable() {
+    return exportOk;
+  }
+
+  // Offer a save record as a .json file. Resolves with the file name.
   function exportRecord(record, slot) {
     const name = filenameFor(record, slot);
-    download(name, JSON.stringify(record, null, 1));
-    return name;
+    try {
+      return Promise.resolve(downloader(name, JSON.stringify(record, null, 1))).then(() => name);
+    } catch (e) {
+      return Promise.reject(e);
+    }
   }
 
   function exportSlot(slot) {
-    const rec = readRecord(slot);
-    if (!rec) throw new Error('Slot ' + slot + ' is empty.');
+    let rec;
+    try {
+      rec = readRecord(slot);
+    } catch (e) {
+      return Promise.reject(e);
+    }
+    if (!rec) return Promise.reject(new Error('Slot ' + slot + ' is empty.'));
     return exportRecord(rec, slot);
   }
 
@@ -253,6 +276,9 @@
     remove,
     exportSlot,
     exportRecord,
+    setDownloader,
+    setExportAvailable,
+    exportAvailable,
     filenameFor,
     readFile,
     loadSettings,

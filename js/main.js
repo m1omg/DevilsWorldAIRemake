@@ -88,7 +88,12 @@
   // opens is ignored until released).
   let padMenuPrev = {};
   function menuPads() {
-    const pads = (navigator.getGamepads && navigator.getGamepads()) || [];
+    let pads = [];
+    try {
+      pads = (navigator.getGamepads && navigator.getGamepads()) || [];
+    } catch (e) {
+      pads = []; // gamepads can be blocked when the page is embedded
+    }
     for (const p of pads) {
       if (!p || !p.connected) continue;
       const b = (i) => !!(p.buttons[i] && p.buttons[i].pressed);
@@ -255,7 +260,7 @@
       const sm = pending.record.summary;
       label = `round ${sm.round}, ${sm.scene === 'dots' ? 'scene 1' : sm.scene === 'bibles' ? 'scene 2' : 'bonus'}, ${sm.players} player${sm.players > 1 ? 's' : ''}`;
     }
-    ui.renderSlots(slotMode, DM.Save.list(), { storage: DM.Save.available(), importLabel: label });
+    ui.renderSlots(slotMode, DM.Save.list(), { storage: DM.Save.available(), canExport: DM.Save.exportAvailable(), importLabel: label });
   }
 
   function thumbnail() {
@@ -299,23 +304,22 @@
     }
   }
 
+  const exported = (name) => ui.toast(`Exported to ${name}`);
+  const exportFailed = (e) => ui.toast((e && e.message) || 'The file could not be exported.', 'error');
+
   function exportSlot(slot) {
-    try {
-      const name = DM.Save.exportSlot(slot);
-      ui.toast(`Exported to ${name}`);
-    } catch (e) {
-      ui.toast(e.message, 'error');
-    }
+    DM.Save.exportSlot(slot).then(exported, exportFailed);
   }
 
   function exportCurrent() {
     if (!state) return;
+    let rec;
     try {
-      const name = DM.Save.exportRecord(DM.Save.makeRecord(state, thumbnail()), 0);
-      ui.toast(`Exported to ${name}`);
+      rec = DM.Save.makeRecord(state, thumbnail());
     } catch (e) {
-      ui.toast(e.message, 'error');
+      return exportFailed(e);
     }
+    DM.Save.exportRecord(rec, 0).then(exported, exportFailed);
   }
 
   async function deleteSlot(slot) {

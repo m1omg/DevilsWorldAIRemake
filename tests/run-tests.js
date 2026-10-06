@@ -441,6 +441,23 @@ test('save records round-trip through export text and slots', () => {
   eq(DM.Save.list()[1].record, null);
 });
 
+test('export hands the file to the page downloader and it imports back', () => {
+  const s = run(G.newGame({ players: 1, seed: 41 }), 600, scriptInput(2));
+  let got = null;
+  DM.Save.setDownloader((name, text) => {
+    got = { name, text };
+  });
+  try {
+    DM.Save.write(1, s, null);
+    DM.Save.exportSlot(1);
+    assert(got && /^devils-maze_slot1_round01-scene1_\d{4}-\d{2}-\d{2}\.json$/.test(got.name), 'file name ' + (got && got.name));
+    eq(simSnap(DM.Save.parseRecord(got.text).state), simSnap(s), 'exported text restores the game');
+  } finally {
+    DM.Save.setDownloader(null);
+    DM.Save.remove(1);
+  }
+});
+
 test('import rejects other files, edited saves and other versions', () => {
   const rec = DM.Save.makeRecord(G.newGame({ players: 1, seed: 2 }), null);
   const bad = [

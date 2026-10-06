@@ -170,7 +170,7 @@
             : 'File checked: ' + (o.importLabel || '') + '. Choose a slot to keep it in, or play it now.';
       if (!o.storage) sub += ' Browser storage is unavailable here, so slots cannot be used — export and import files instead.';
       $('#slotsSub').textContent = sub;
-      $('#btnExportCurrent').hidden = mode !== 'save';
+      $('#btnExportCurrent').hidden = mode !== 'save' || o.canExport === false;
       $('#btnPlayImported').hidden = mode !== 'import';
 
       const list = $('#slotList');
@@ -217,7 +217,7 @@
         if (mode === 'load') btn('Load', 'slotLoad', !has, 'primary');
         if (mode === 'import') btn('Put it here', 'slotImport', !o.storage, 'primary');
         if (mode !== 'import') {
-          btn('Export', 'slotExport', !has);
+          if (o.canExport !== false) btn('Export', 'slotExport', !has);
           btn('Delete', 'slotDelete', !has && !broken, 'danger');
         }
         card.append(thumb, info, actions);

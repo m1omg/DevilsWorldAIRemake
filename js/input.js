@@ -82,7 +82,12 @@
     }
 
     pollPads(onPause) {
-      const pads = (root.navigator && navigator.getGamepads && navigator.getGamepads()) || [];
+      let pads = [];
+      try {
+        pads = (root.navigator && navigator.getGamepads && navigator.getGamepads()) || [];
+      } catch (e) {
+        pads = []; // gamepads can be blocked when the page is embedded
+      }
       const list = [];
       for (const p of pads) if (p && p.connected) list.push(p);
       this.padDir = [-1, -1];
