@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Devil's Maze</title>
+    <meta name="description" content="An unofficial browser remake of Devil World (Nintendo, 1984) with procedural graphics and sound, save slots and save export." />
+    <meta name="theme-color" content="#120a24" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='34' r='22' fill='%23d4283c'/%3E%3Cpath d='M14 22 6 4l18 12zM50 22l8-18-18 12z' fill='%23f2e6c8'/%3E%3Cpath d='M20 32q5-5 10 0M34 32q5-5 10 0' stroke='%23ffd23a' stroke-width='4' fill='none'/%3E%3Cpath d='M20 44q12 9 24 0' stroke='%232a0008' stroke-width='4' fill='none'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main id="app">
+      <div id="stage">
+        <canvas id="game" role="img" aria-label="Devil's Maze game screen"></canvas>
+        <div id="ready" class="ready hidden" aria-hidden="true">GET READY</div>
+      </div>
+
+      <div id="touch" class="touch hidden" aria-hidden="true">
+        <div id="dpad" class="dpad" data-dir="-1">
+          <span class="arrow up"></span><span class="arrow right"></span><span class="arrow down"></span><span class="arrow left"></span>
+        </div>
+        <button id="btnFire" class="tbtn fire" type="button" tabindex="-1">FIRE</button>
+        <button id="btnPause" class="tbtn tpause" type="button" tabindex="-1" aria-label="Pause">❚❚</button>
+      </div>
+
+      <div id="overlay" class="overlay">
+        <section id="scr-title" class="screen" aria-labelledby="logoMain">
+          <div class="logo">
+            <div class="logo-top">Devil’s</div>
+            <h1 id="logoMain" class="logo-main">Maze</h1>
+            <p class="tribute">A fan remake of <cite>Devil World</cite> (Nintendo, 1984)</p>
+          </div>
+          <nav class="menu" aria-label="Main menu">
+            <button type="button" data-action="new1">1 Player</button>
+            <button type="button" data-action="new2">2 Players</button>
+            <button type="button" data-action="load">Load Game</button>
+            <button type="button" data-action="help">How to Play</button>
+            <button type="button" data-action="options">Options</button>
+            <button type="button" data-action="credits">Credits</button>
+          </nav>
+          <p class="hint">Move: arrows / WASD · Fire: Space · Pause: Esc</p>
+          <p class="legal">Unofficial fan project — not affiliated with or endorsed by Nintendo.</p>
+        </section>
+
+        <section id="scr-pause" class="screen panel" aria-labelledby="pauseTitle">
+          <h2 id="pauseTitle">Paused</h2>
+          <nav class="menu" aria-label="Pause menu">
+            <button type="button" data-action="resume">Resume</button>
+            <button type="button" data-action="save">Save Game</button>
+            <button type="button" data-action="load">Load Game</button>
+            <button type="button" data-action="help">How to Play</button>
+            <button type="button" data-action="options">Options</button>
+            <button type="button" data-action="quit">Quit to Title</button>
+          </nav>
+        </section>
+
+        <section id="scr-slots" class="screen panel wide" aria-labelledby="slotsTitle">
+          <h2 id="slotsTitle">Save Game</h2>
+          <p id="slotsSub" class="sub"></p>
+          <div id="slotList" class="slots"></div>
+          <div class="row">
+            <button type="button" data-action="import">Import save file…</button>
+            <button type="button" data-action="exportCurrent" id="btnExportCurrent">Export current game…</button>
+            <button type="button" data-action="playImported" id="btnPlayImported">Play it now</button>
+            <button type="button" data-back>Back</button>
+          </div>
+        </section>
+
+        <section id="scr-options" class="screen panel" aria-labelledby="optTitle">
+          <h2 id="optTitle">Options</h2>
+          <div class="form">
+            <label>Music volume <input id="optMusic" type="range" min="0" max="100" step="5" /></label>
+            <label>Sound effects <input id="optSfx" type="range" min="0" max="100" step="5" /></label>
+            <label class="check"><input id="optShake" type="checkbox" /> Screen shake</label>
+            <label
+              >Visual effects
+              <select id="optQuality">
+                <option value="high">High</option>
+                <option value="low">Low (faster)</option>
+              </select>
+            </label>
+            <label
+              >Touch controls
+              <select id="optTouch">
+                <option value="auto">Automatic</option>
+                <option value="on">Always show</option>
+                <option value="off">Never show</option>
+              </select>
+            </label>
+          </div>
+          <div class="row"><button type="button" data-back>Back</button></div>
+        </section>
+
+        <section id="scr-help" class="screen panel wide scroll" aria-labelledby="helpTitle">
+          <h2 id="helpTitle">How to Play</h2>
+          <div class="help">
+            <p>You are <b>Kindle</b>, a young dragon who wanders into the Devil’s maze (player 2 is <b>Cinder</b>). The Devil on top points, and his imps crank the whole maze that way. The frame around the maze is solid: <b>if it pushes you into a wall, you are crushed.</b> A red glow marks the edge that is closing in.</p>
+            <h3>Each round has three scenes</h3>
+            <ol>
+              <li><b>Scene 1 — Magic dots.</b> Walk over a <b>cross</b> to hold it. Only while you hold a cross can you eat dots and breathe fire. The cross fades after a while (your meter flashes), and its marker refills later. Clear every dot. Burnt slimes turn into a toasted puff worth 500; four candy apples (800) appear halfway.</li>
+              <li><b>Scene 2 — Devil gates.</b> Pick up a <b>Bible</b> (1000) and carry it to one of the four red gates around the Devil’s nest (another 1000). While you carry a Bible you can breathe fire. Seal all four.</li>
+              <li><b>Bonus.</b> No Devil, no enemies, 40 seconds. Step on the glowing <b>arrow tiles</b> to choose which way the maze slides and open the six chests. One holds a dragon egg: an extra life. Getting crushed here only ends the bonus.</li>
+            </ol>
+            <h3>Enemies</h3>
+            <ul>
+              <li><b>Gloomlet</b> (violet slime): burn it for a toasted puff.</li>
+              <li><b>Gargling</b> (stone imp, from round 2): fire only freezes it for a moment.</li>
+              <li><b>Furylet</b> (red slime, from round 7): faster and fiercer.</li>
+            </ul>
+            <h3>Controls</h3>
+            <table class="keys">
+              <tr><th></th><th>1 player</th><th>2 players</th></tr>
+              <tr><td>Move</td><td>Arrows or WASD</td><td>P1: WASD · P2: Arrows</td></tr>
+              <tr><td>Fire</td><td>Space, Z, X, Enter…</td><td>P1: Space / F · P2: Enter / Right Shift / L</td></tr>
+              <tr><td>Pause</td><td colspan="2">Esc or P (gamepad: Start)</td></tr>
+            </table>
+            <p>Gamepads work too (d-pad or stick, any face button fires). In 2-player mode a single gamepad controls player 2. On touch screens use the on-screen pad and FIRE button.</p>
+            <h3>Saving</h3>
+            <p>Pause the game and choose <b>Save Game</b> to store a complete snapshot in one of three browser slots. From the slot list you can <b>Export</b> a slot to a <code>.json</code> file and <b>Import</b> it again later or on another computer.</p>
+          </div>
+          <div class="row"><button type="button" data-back>Back</button></div>
+        </section>
+
+        <section id="scr-credits" class="screen panel wide scroll" aria-labelledby="credTitle">
+          <h2 id="credTitle">Credits</h2>
+          <div class="help">
+            <h3>The original game</h3>
+            <p><cite>Devil World</cite> © 1984 Nintendo. Released for the Family Computer in Japan on 5 October 1984 and in Europe in 1987. Developed by Nintendo R&amp;D1 and Intelligent Systems and published by Nintendo. Directed by <b>Shigeru Miyamoto</b>, designed by <b>Shigeru Miyamoto</b> and <b>Takashi Tezuka</b>, music by <b>Koji Kondo</b> and <b>Akito Nakatsuka</b>.</p>
+            <p>All credit for the game design (the Devil who scrolls the maze, the crushing frame, crosses and dots, Bibles and seals, the arrow-tile bonus round) belongs to its creators.</p>
+            <h3>This remake</h3>
+            <p><b>Devil’s Maze</b> is an unofficial, non-commercial fan tribute. It contains no code, graphics, music, sound or level data from the original game. The characters (Kindle, Cinder, the Gloomlets, Garglings and Furylets, this Devil and his imps), maze layouts, artwork and music are new and generated procedurally in your browser. “Devil World” and “Nintendo” are trademarks of Nintendo; they are used here only to credit the original work.</p>
+            <p>Remake built with Claude Code (Anthropic) for the DevilsWorldAIRemake project. Fonts: Bungee by David Jonathan Ross and Rubik by Hubert &amp; Fischer (SIL Open Font License, via Google Fonts).</p>
+          </div>
+          <div class="row"><button type="button" data-back>Back</button></div>
+        </section>
+
+        <section id="scr-gameover" class="screen panel" aria-labelledby="goTitle">
+          <h2 id="goTitle">Game Over</h2>
+          <div id="goScores" class="scores"></div>
+          <nav class="menu" aria-label="Game over menu">
+            <button type="button" data-action="again">Play Again</button>
+            <button type="button" data-action="title">Title Screen</button>
+          </nav>
+        </section>
+
+        <section id="scr-confirm" class="screen panel" role="alertdialog" aria-labelledby="confirmText">
+          <p id="confirmText" class="confirm-text"></p>
+          <div class="row">
+            <button type="button" id="confirmYes">Yes</button>
+            <button type="button" id="confirmNo" data-back>Cancel</button>
+          </div>
+        </section>
+      </div>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      <input id="importFile" type="file" accept=".json,application/json" hidden />
+    </main>
+
+    <script src="js/util.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/mazes.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/art.js"></script>
+    <script src="js/fx.js"></script>
+    <script src="js/render.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/input.js"></script>
+    <script src="js/save.js"></script>
+    <script src="js/loop.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

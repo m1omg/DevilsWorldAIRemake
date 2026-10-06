@@ -1,0 +1,12 @@
+{
+  "name": "devils-maze",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Unofficial browser remake of Devil World (Nintendo, 1984) with procedural graphics and sound, save slots and save export.",
+  "scripts": {
+    "test": "node tests/run-tests.js && node tests/bot-playthrough.js 3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

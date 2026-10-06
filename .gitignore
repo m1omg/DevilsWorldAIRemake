@@ -1,0 +1,13 @@
+# Never commit game ROMs or disk images of the original game.
+*.nes
+*.fds
+*.unf
+*.unif
+*.rom
+*.zip
+*.7z
+
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
